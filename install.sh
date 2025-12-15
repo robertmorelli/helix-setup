@@ -2,17 +2,41 @@
 set -euo pipefail
 
 REPO_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-SRC_DIR="$REPO_DIR/helix"
 
 os="$(uname -s | tr '[:upper:]' '[:lower:]')"
+LINK_MODE="${LINK_MODE:-symlink}"   # symlink (default) or copy
 
-# Decide Helix config dir per OS
+# ----------------------------
+# Helpers
+# ----------------------------
+backup_existing() {
+  local p="$1"
+  if [[ -e "$p" && ! -L "$p" ]]; then
+    mv "$p" "$p.bak.$(date +%Y%m%d-%H%M%S)"
+  fi
+}
+
+sync_path() {
+  local src="$1" dst="$2"
+  backup_existing "$dst"
+  rm -rf "$dst" 2>/dev/null || true
+
+  if [[ "$LINK_MODE" == "copy" ]]; then
+    cp -R "$src" "$dst"
+  else
+    ln -s "$src" "$dst"
+  fi
+}
+
+# ----------------------------
+# Helix paths
+# ----------------------------
 hx_config_dir() {
   case "$os" in
-    darwin) echo "${XDG_CONFIG_HOME:-$HOME/.config}/helix" ;;
-    linux)  echo "${XDG_CONFIG_HOME:-$HOME/.config}/helix" ;;
+    darwin|linux)
+      echo "${XDG_CONFIG_HOME:-$HOME/.config}/helix"
+      ;;
     msys*|mingw*|cygwin*)
-      # Git Bash / MSYS: prefer Windows USERPROFILE if present
       local home_win="${USERPROFILE:-$HOME}"
       echo "${XDG_CONFIG_HOME:-$home_win/.config}/helix"
       ;;
@@ -22,87 +46,74 @@ hx_config_dir() {
   esac
 }
 
-CONFIG_DIR="$(hx_config_dir)"
-mkdir -p "$CONFIG_DIR"
-
-# Install Helix (best-effort). You can comment out what you don't want.
-install_helix() {
-  if command -v hx >/dev/null 2>&1; then
-    echo "hx already present: $(hx --version 2>/dev/null || true)"
-    return 0
-  fi
-
-  echo "hx not found. Trying to install..."
+# ----------------------------
+# Ghostty paths
+# ----------------------------
+ghostty_config_dir() {
   case "$os" in
-    darwin)
-      if command -v brew >/dev/null 2>&1; then
-        brew install helix
-      else
-        echo "Homebrew not found. Install brew or install helix manually."
-        return 1
-      fi
-      ;;
-    linux)
-      if command -v apt-get >/dev/null 2>&1; then
-        sudo apt-get update && sudo apt-get install -y helix
-      elif command -v dnf >/dev/null 2>&1; then
-        sudo dnf install -y helix || true
-        # Fedora sometimes lags; you may prefer manual install for latest.
-      elif command -v pacman >/dev/null 2>&1; then
-        sudo pacman -Sy --noconfirm helix
-      elif command -v zypper >/dev/null 2>&1; then
-        sudo zypper install -y helix
-      else
-        echo "No known package manager found. Install helix manually."
-        return 1
-      fi
+    darwin|linux)
+      echo "${XDG_CONFIG_HOME:-$HOME/.config}/ghostty"
       ;;
     msys*|mingw*|cygwin*)
-      echo "Windows shell detected. Recommend installing Helix via winget or scoop:"
-      echo "  winget install Helix.Helix"
-      echo "  scoop install helix"
-      return 1
+      local base="${APPDATA:-${USERPROFILE:-$HOME}/AppData/Roaming}"
+      echo "$base/ghostty"
       ;;
     *)
-      echo "Unknown OS: $os. Install helix manually."
-      return 1
+      echo "${XDG_CONFIG_HOME:-$HOME/.config}/ghostty"
       ;;
   esac
 }
 
-# Choose copy vs symlink (symlink preferred for editing-in-repo)
-LINK_MODE="${LINK_MODE:-symlink}"  # set LINK_MODE=copy to copy files instead
-backup_existing() {
-  local p="$1"
-  if [[ -e "$p" && ! -L "$p" ]]; then
-    local ts; ts="$(date +%Y%m%d-%H%M%S)"
-    mv "$p" "$p.bak.$ts"
-  fi
-}
+# ----------------------------
+# Install Helix (best effort)
+# ----------------------------
+install_helix() {
+  command -v hx >/dev/null 2>&1 && return 0
 
-sync_path() {
-  local src="$1" dst="$2"
-
-  backup_existing "$dst"
-  rm -rf "$dst" 2>/dev/null || true
-
-  if [[ "$LINK_MODE" == "copy" ]]; then
-    if [[ -d "$src" ]]; then
-      cp -R "$src" "$dst"
-    else
-      cp "$src" "$dst"
-    fi
-  else
-    ln -s "$src" "$dst"
-  fi
+  case "$os" in
+    darwin)
+      command -v brew >/dev/null 2>&1 && brew install helix || true
+      ;;
+    linux)
+      if command -v apt-get >/dev/null 2>&1; then
+        sudo apt-get install -y helix || true
+      elif command -v dnf >/dev/null 2>&1; then
+        sudo dnf install -y helix || true
+      elif command -v pacman >/dev/null 2>&1; then
+        sudo pacman -Sy --noconfirm helix || true
+      fi
+      ;;
+  esac
 }
 
 install_helix || true
 
-# Sync config and themes
-[[ -f "$SRC_DIR/config.toml" ]]      && sync_path "$SRC_DIR/config.toml"      "$CONFIG_DIR/config.toml"
-[[ -f "$SRC_DIR/languages.toml" ]]   && sync_path "$SRC_DIR/languages.toml"   "$CONFIG_DIR/languages.toml"
-[[ -d "$SRC_DIR/themes" ]]           && sync_path "$SRC_DIR/themes"           "$CONFIG_DIR/themes"
+# ----------------------------
+# Helix sync
+# ----------------------------
+HX_DST="$(hx_config_dir)"
+mkdir -p "$HX_DST"
 
-echo "Helix config installed to: $CONFIG_DIR"
-echo "Mode: $LINK_MODE (set LINK_MODE=copy to copy instead of symlink)"
+[[ -f "$REPO_DIR/helix/config.toml" ]] \
+  && sync_path "$REPO_DIR/helix/config.toml" "$HX_DST/config.toml"
+
+[[ -f "$REPO_DIR/helix/languages.toml" ]] \
+  && sync_path "$REPO_DIR/helix/languages.toml" "$HX_DST/languages.toml"
+
+[[ -d "$REPO_DIR/helix/themes" ]] \
+  && sync_path "$REPO_DIR/helix/themes" "$HX_DST/themes"
+
+# ----------------------------
+# Ghostty sync
+# ----------------------------
+GHOSTTY_DST="$(ghostty_config_dir)"
+mkdir -p "$GHOSTTY_DST"
+
+[[ -f "$REPO_DIR/ghostty/config" ]] \
+  && sync_path "$REPO_DIR/ghostty/config" "$GHOSTTY_DST/config"
+
+[[ -d "$REPO_DIR/ghostty/themes" ]] \
+  && sync_path "$REPO_DIR/ghostty/themes" "$GHOSTTY_DST/themes"
+
+echo "Installed configs (mode=$LINK_MODE)"
+

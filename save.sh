@@ -2,10 +2,22 @@
 set -euo pipefail
 
 REPO_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-DST_DIR="$REPO_DIR/helix"
 
 os="$(uname -s | tr '[:upper:]' '[:lower:]')"
 
+# ----------------------------
+# Helpers
+# ----------------------------
+copy_if_exists() {
+  local src="$1" dst="$2"
+  [[ -e "$src" ]] || return 0
+  rm -rf "$dst"
+  cp -R "$src" "$dst"
+}
+
+# ----------------------------
+# Helix paths
+# ----------------------------
 hx_config_dir() {
   case "$os" in
     darwin|linux)
@@ -21,22 +33,43 @@ hx_config_dir() {
   esac
 }
 
-SRC_DIR="$(hx_config_dir)"
-
-mkdir -p "$DST_DIR"
-
-copy_if_exists() {
-  local src="$1" dst="$2"
-  [[ -e "$src" ]] || return 0
-  rm -rf "$dst"
-  cp -R "$src" "$dst"
+# ----------------------------
+# Ghostty paths
+# ----------------------------
+ghostty_config_dir() {
+  case "$os" in
+    darwin|linux)
+      echo "${XDG_CONFIG_HOME:-$HOME/.config}/ghostty"
+      ;;
+    msys*|mingw*|cygwin*)
+      local base="${APPDATA:-${USERPROFILE:-$HOME}/AppData/Roaming}"
+      echo "$base/ghostty"
+      ;;
+    *)
+      echo "${XDG_CONFIG_HOME:-$HOME/.config}/ghostty"
+      ;;
+  esac
 }
 
-copy_if_exists "$SRC_DIR/config.toml"    "$DST_DIR/config.toml"
-copy_if_exists "$SRC_DIR/languages.toml" "$DST_DIR/languages.toml"
-copy_if_exists "$SRC_DIR/themes"         "$DST_DIR/themes"
+# ----------------------------
+# Save Helix
+# ----------------------------
+HX_SRC="$(hx_config_dir)"
+mkdir -p "$REPO_DIR/helix"
 
-echo "Saved Helix config from:"
-echo "  $SRC_DIR"
-echo "Into repo:"
-echo "  $DST_DIR"
+copy_if_exists "$HX_SRC/config.toml"    "$REPO_DIR/helix/config.toml"
+copy_if_exists "$HX_SRC/languages.toml" "$REPO_DIR/helix/languages.toml"
+copy_if_exists "$HX_SRC/themes"         "$REPO_DIR/helix/themes"
+
+# ----------------------------
+# Save Ghostty
+# ----------------------------
+GHOSTTY_SRC="$(ghostty_config_dir)"
+mkdir -p "$REPO_DIR/ghostty"
+
+copy_if_exists "$GHOSTTY_SRC/config" "$REPO_DIR/ghostty/config"
+copy_if_exists "$GHOSTTY_SRC/themes" "$REPO_DIR/ghostty/themes"
+
+echo "Saved Helix + Ghostty configs into repo"
+
+
