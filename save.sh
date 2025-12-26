@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-
 REPO_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-
 os="$(uname -s | tr '[:upper:]' '[:lower:]')"
 
 # ----------------------------
@@ -11,8 +9,10 @@ os="$(uname -s | tr '[:upper:]' '[:lower:]')"
 copy_if_exists() {
   local src="$1" dst="$2"
   [[ -e "$src" ]] || return 0
+  # Remove destination first (handles symlinks)
   rm -rf "$dst"
-  cp -R "$src" "$dst"
+  # Copy actual file contents, dereferencing symlinks
+  cp -RfL "$src" "$dst"
 }
 
 # ----------------------------
@@ -52,11 +52,17 @@ ghostty_config_dir() {
 }
 
 # ----------------------------
+# Clean existing symlinks in repo
+# ----------------------------
+rm -f "$REPO_DIR/helix/config.toml" 2>/dev/null || true
+rm -f "$REPO_DIR/helix/languages.toml" 2>/dev/null || true
+rm -rf "$REPO_DIR/helix/themes" 2>/dev/null || true
+
+# ----------------------------
 # Save Helix
 # ----------------------------
 HX_SRC="$(hx_config_dir)"
 mkdir -p "$REPO_DIR/helix"
-
 copy_if_exists "$HX_SRC/config.toml"    "$REPO_DIR/helix/config.toml"
 copy_if_exists "$HX_SRC/languages.toml" "$REPO_DIR/helix/languages.toml"
 copy_if_exists "$HX_SRC/themes"         "$REPO_DIR/helix/themes"
@@ -66,10 +72,7 @@ copy_if_exists "$HX_SRC/themes"         "$REPO_DIR/helix/themes"
 # ----------------------------
 GHOSTTY_SRC="$(ghostty_config_dir)"
 mkdir -p "$REPO_DIR/ghostty"
-
 copy_if_exists "$GHOSTTY_SRC/config" "$REPO_DIR/ghostty/config"
 copy_if_exists "$GHOSTTY_SRC/themes" "$REPO_DIR/ghostty/themes"
 
 echo "Saved Helix + Ghostty configs into repo"
-
-
