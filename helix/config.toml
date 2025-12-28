@@ -1,115 +1,156 @@
 theme = "gleam"
 
-[keys.insert]
-Cmd-p = "normal_mode"
-C-A-p = "normal_mode"
-C-p = "normal_mode"
-A-p = "normal_mode"
-
-Cmd-c = ":clipboard-yank"
-C-A-c = ":clipboard-yank"
-C-c = ":clipboard-yank"
-A-c = ":clipboard-yank"
-
-Cmd-v = ":clipboard-paste-after"
-C-A-v = ":clipboard-paste-after"
-C-v = ":clipboard-paste-after"
-A-v = ":clipboard-paste-after"
-
-Cmd-down = "copy_selection_on_next_line"
-C-A-down = "copy_selection_on_next_line"
-C-down = "copy_selection_on_next_line"
-A-down = "copy_selection_on_next_line"
-
-Cmd-s = ":write"
-C-A-s = ":write"
-C-s = ":write"
-A-s = ":write"
-
-"Cmd-/" = "toggle_comments"
-"C-A-/" = "toggle_comments"
-"C-/" = "toggle_comments"
-"A-/" = "toggle_comments"
-
-Cmd-z = "undo"
-C-A-z = "undo"
-C-z = "undo"
-A-z = "undo"
-
-Cmd-S-z = "redo"
-C-S-A-z = "redo"
-C-S-z = "redo"
-A-S-z = "redo"
-
-Cmd-left  = "goto_line_start" # diff
-C-A-left  = "move_prev_word_start"
-C-left  = "move_prev_word_start"
-A-left  = "move_prev_word_start"
-
-Cmd-right = "goto_line_end_newline" # diff
-C-A-right = ["move_next_word_end", "move_char_right"]
-C-right = ["move_next_word_end", "move_char_right"]
-A-right = ["move_next_word_end", "move_char_right"]
-
-Cmd-w = [":wq", ":q!"]
-C-A-w = [":wq", ":q!"]
-C-w = [":wq", ":q!"]
-A-w = [":wq", ":q!"]
-
-
-[keys.normal]
-esc = "insert_mode"
-
-Cmd-c = ":clipboard-yank"
-C-A-c = ":clipboard-yank"
-C-c = ":clipboard-yank"
-A-c = ":clipboard-yank"
-
-Cmd-v = ":clipboard-paste-after"
-C-A-v = ":clipboard-paste-after"
-C-v = ":clipboard-paste-after"
-A-v = ":clipboard-paste-after"
-
-Cmd-down = "copy_selection_on_next_line"
-C-A-down = "copy_selection_on_next_line"
-C-down = "copy_selection_on_next_line"
-A-down = "copy_selection_on_next_line"
-
-Cmd-s = ":write"
-C-A-s = ":write"
-C-s = ":write"
-A-s = ":write"
-
-"Cmd-/" = "toggle_comments"
-"C-A-/" = "toggle_comments"
-"C-/" = "toggle_comments"
-"A-/" = "toggle_comments"
-
-Cmd-z = "undo"
-C-A-z = "undo"
-C-z = "undo"
-A-z = "undo"
-
-Cmd-S-z = "redo"
-C-S-A-z = "redo"
-C-S-z = "redo"
-A-S-z = "redo"
-
-Cmd-left  = "goto_line_start" # diff
-C-A-left  = "move_prev_word_start"
-C-left  = "move_prev_word_start"
-A-left  = "move_prev_word_start"
-
-Cmd-right = "goto_line_end_newline" # diff
-C-A-right = ["move_next_word_end", "move_char_right"]
-C-right = ["move_next_word_end", "move_char_right"]
-A-right = ["move_next_word_end", "move_char_right"]
-
-Cmd-w = [":wq", ":q!"]
-C-A-w = [":wq", ":q!"]
-C-w = [":wq", ":q!"]
-A-w = [":wq", ":q!"]
-
-
 [editor]
 auto-pairs = false
+
+[keys.insert]
+# different for insert/normal
+esc = "command_mode"
+Meta-p = "command_mode"
+C-A-p = "command_mode"
+C-p = "command_mode"
+A-p = "command_mode"
+
+# same for all modes
+"Meta-'" = ["delete_selection_noyank", "commit_undo_checkpoint"]
+Meta-r = [":config-reload", ":rl", ":lsp-restart"]
+S-up = "search_prev"
+S-down = "search_next"
+S-left = "shrink_selection"
+S-right = "expand_selection"
+
+Meta-f = ["search_selection", "search", "commit_undo_checkpoint"]
+C-A-f = ["search_selection", "search", "commit_undo_checkpoint"]
+C-f = ["search_selection", "search", "commit_undo_checkpoint"]
+A-f = ["search_selection", "search", "commit_undo_checkpoint"]
+
+Meta-c = [":clipboard-yank-join", "yank"]
+C-A-c = [":clipboard-yank-join", "yank"]
+C-c = [":clipboard-yank-join", "yank"]
+A-c = [":clipboard-yank-join", "yank"]
+
+Meta-x = [":clipboard-yank", "delete_selection", "commit_undo_checkpoint"]
+C-A-x = [":clipboard-yank", "delete_selection", "commit_undo_checkpoint"]
+C-x = [":clipboard-yank", "delete_selection", "commit_undo_checkpoint"]
+A-x = [":clipboard-yank", "delete_selection", "commit_undo_checkpoint"]
+
+# Meta-v doesnt work
+C-A-v = ["delete_selection_noyank", "paste_before", "commit_undo_checkpoint"]
+C-v = ["delete_selection_noyank", "paste_before", "commit_undo_checkpoint"]
+A-v = ["delete_selection_noyank", "paste_before", "commit_undo_checkpoint"]
+
+Meta-down = "copy_selection_on_next_line"
+C-A-down = "copy_selection_on_next_line"
+C-down = "copy_selection_on_next_line"
+A-down = "copy_selection_on_next_line"
+
+Meta-s = [":write", "commit_undo_checkpoint"]
+C-A-s = [":write", "commit_undo_checkpoint"]
+C-s = [":write", "commit_undo_checkpoint"]
+A-s = [":write", "commit_undo_checkpoint"]
+
+"Meta-/" = ["toggle_comments", "commit_undo_checkpoint"]
+"C-A-/" = ["toggle_comments", "commit_undo_checkpoint"]
+"C-/" = ["toggle_comments", "commit_undo_checkpoint"]
+"A-/" = ["toggle_comments", "commit_undo_checkpoint"]
+
+Meta-z = "undo"
+C-A-z = "undo"
+C-z = "undo"
+A-z = "undo"
+
+Meta-S-z = "redo"
+C-S-A-z = "redo"
+C-S-z = "redo"
+A-S-z = "redo"
+
+Meta-left  = "goto_line_start" # diff
+C-A-left  = "move_prev_word_start"
+C-left  = "move_prev_word_start"
+A-left  = "move_prev_word_start"
+
+Meta-right = "goto_line_end_newline" # diff
+C-A-right = ["move_next_word_end", "move_char_right"]
+C-right = ["move_next_word_end", "move_char_right"]
+A-right = ["move_next_word_end", "move_char_right"]
+
+Meta-w = [":wq", ":q!"]
+C-A-w = [":wq", ":q!"]
+C-w = [":wq", ":q!"]
+A-w = [":wq", ":q!"]
+
+[keys.normal]
+# different for insert/normal
+esc = "insert_mode"
+ret = "insert_mode"
+space = "insert_mode"
+del = "insert_mode"
+tab = "insert_mode"
+
+# same for all modes
+"Meta-'" = ["delete_selection_noyank", "commit_undo_checkpoint"]
+Meta-r = [":config-reload", ":rl", ":lsp-restart"]
+S-up = "search_prev"
+S-down = "search_next"
+S-left = "shrink_selection"
+S-right = "expand_selection"
+
+Meta-f = ["search_selection", "search", "commit_undo_checkpoint"]
+C-A-f = ["search_selection", "search", "commit_undo_checkpoint"]
+C-f = ["search_selection", "search", "commit_undo_checkpoint"]
+A-f = ["search_selection", "search", "commit_undo_checkpoint"]
+
+Meta-c = [":clipboard-yank-join", "yank"]
+C-A-c = [":clipboard-yank-join", "yank"]
+C-c = [":clipboard-yank-join", "yank"]
+A-c = [":clipboard-yank-join", "yank"]
+
+Meta-x = [":clipboard-yank", "delete_selection", "commit_undo_checkpoint"]
+C-A-x = [":clipboard-yank", "delete_selection", "commit_undo_checkpoint"]
+C-x = [":clipboard-yank", "delete_selection", "commit_undo_checkpoint"]
+A-x = [":clipboard-yank", "delete_selection", "commit_undo_checkpoint"]
+
+# Meta-v doesnt work
+C-A-v = ["delete_selection_noyank", "paste_before", "commit_undo_checkpoint"]
+C-v = ["delete_selection_noyank", "paste_before", "commit_undo_checkpoint"]
+A-v = ["delete_selection_noyank", "paste_before", "commit_undo_checkpoint"]
+
+Meta-down = "copy_selection_on_next_line"
+C-A-down = "copy_selection_on_next_line"
+C-down = "copy_selection_on_next_line"
+A-down = "copy_selection_on_next_line"
+
+Meta-s = [":write", "commit_undo_checkpoint"]
+C-A-s = [":write", "commit_undo_checkpoint"]
+C-s = [":write", "commit_undo_checkpoint"]
+A-s = [":write", "commit_undo_checkpoint"]
+
+"Meta-/" = ["toggle_comments", "commit_undo_checkpoint"]
+"C-A-/" = ["toggle_comments", "commit_undo_checkpoint"]
+"C-/" = ["toggle_comments", "commit_undo_checkpoint"]
+"A-/" = ["toggle_comments", "commit_undo_checkpoint"]
+
+Meta-z = "undo"
+C-A-z = "undo"
+C-z = "undo"
+A-z = "undo"
+
+Meta-S-z = "redo"
+C-S-A-z = "redo"
+C-S-z = "redo"
+A-S-z = "redo"
+
+Meta-left  = "goto_line_start" # diff
+C-A-left  = "move_prev_word_start"
+C-left  = "move_prev_word_start"
+A-left  = "move_prev_word_start"
+
+Meta-right = "goto_line_end_newline" # diff
+C-A-right = ["move_next_word_end", "move_char_right"]
+C-right = ["move_next_word_end", "move_char_right"]
+A-right = ["move_next_word_end", "move_char_right"]
+
+Meta-w = [":wq", ":q!"]
+C-A-w = [":wq", ":q!"]
+C-w = [":wq", ":q!"]
+A-w = [":wq", ":q!"]
